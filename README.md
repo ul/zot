@@ -10,6 +10,16 @@ Zones of Thought Strategy Game
 
 From CLI run the below command:
 
+Windows:
+
+```
+cp deps-win.edn deps.edn
+clj -M -m zot.main
+```
+
+MacOs:
+
 ```sh
-./script/run.sh
+cp deps-mac.edn deps.edn
+clj -J-XstartOnFirstThread -M -m zot.main
 ```
