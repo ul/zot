@@ -1,0 +1,4 @@
+{:deps {org.jetbrains.skija/skija-windows {:mvn/version "0.6.18"}
+        org.lwjgl/lwjgl$natives-windows {:mvn/version "3.2.3"}
+        org.lwjgl/lwjgl-glfw$natives-windows {:mvn/version "3.2.3"}
+        org.lwjgl/lwjgl-opengl$natives-windows {:mvn/version "3.2.3"}}}
