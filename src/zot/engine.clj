@@ -16,7 +16,7 @@
     GLFWCursorPosCallbackI
     GLFWMouseButtonCallbackI
     GLFWWindowSizeCallbackI]
-   [org.lwjgl.opengl GL GL11]
+   [org.lwjgl.opengl GL GL33]
    [org.lwjgl.system MemoryUtil]))
 
 (defn color [^long l]
@@ -65,7 +65,7 @@
                              (* @height (get @dpi 1))
                              0 ;; samples
                              8 ;; stencil
-                             (GL11/glGetInteger 0x8CA6) ;; GL_FRAMEBUFFER_BINDING
+                             (GL33/glGetInteger GL33/GL_FRAMEBUFFER_BINDING)
                              FramebufferFormat/GR_GL_RGBA8))
                     (reset! surface (Surface/makeFromBackendRenderTarget
                                      @context @target
