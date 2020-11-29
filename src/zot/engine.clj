@@ -87,6 +87,10 @@
                (.flush @context)
                (GLFW/glfwSwapBuffers window))]
 
+    (GLFW/glfwMakeContextCurrent window)
+    (GLFW/glfwSwapInterval 1) ;; v-sync
+    (GLFW/glfwShowWindow window)
+
     (GLFW/glfwSetKeyCallback
      window
      (reify GLFWKeyCallbackI
@@ -131,10 +135,6 @@
     (GLFW/glfwSetInputMode window GLFW/GLFW_CURSOR GLFW/GLFW_CURSOR_HIDDEN)
 
     (update-dimensions)
-
-    (GLFW/glfwMakeContextCurrent window)
-    (GLFW/glfwSwapInterval 1) ;; v-sync
-    (GLFW/glfwShowWindow window)
 
     (GL/createCapabilities)
 
