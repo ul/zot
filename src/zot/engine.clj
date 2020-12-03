@@ -82,7 +82,7 @@
                                          :height @height
                                          :cursor-x @cursor-x
                                          :cursor-y @cursor-y})
-                        (catch Exception e (.getMessage e)))
+                        (catch Exception e (println (.getMessage e))))
                    (.restoreToCount canvas layer)))
                (.flush @context)
                (GLFW/glfwSwapBuffers window))]
@@ -101,7 +101,7 @@
                        :scancode scancode
                        :action action
                        :mods mods})
-              (catch Exception e (.getMessage e))))))
+              (catch Exception e (println (.getMessage e)))))))
 
     (GLFW/glfwSetCursorPosCallback
      window
@@ -113,7 +113,7 @@
            (reset! cursor-x (if mac x (/ x dpi-x)))
            (reset! cursor-y (if mac y (/ y dpi-y)))
            (try (on-cursor @cursor-x @cursor-y)
-                (catch Exception e (.getMessage e)))))))
+                (catch Exception e (println (.getMessage e))))))))
 
     (GLFW/glfwSetMouseButtonCallback
      window
@@ -122,7 +122,7 @@
          (try (on-mouse-button {:button button
                                 :action action
                                 :mods mods})
-              (catch Exception e (.getMessage e))))))
+              (catch Exception e (println (.getMessage e)))))))
 
     (GLFW/glfwSetWindowSizeCallback
      window
