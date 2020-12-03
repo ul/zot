@@ -1,9 +1,0 @@
-{:deps {org.jetbrains.skija/skija-windows {:mvn/version "0.6.18"}
-        org.lwjgl/lwjgl {:mvn/version "3.2.3"}
-        org.lwjgl/lwjgl$natives-windows {:mvn/version "3.2.3"}
-        org.lwjgl/lwjgl-glfw {:mvn/version "3.2.3"}
-        org.lwjgl/lwjgl-glfw$natives-windows {:mvn/version "3.2.3"}
-        org.lwjgl/lwjgl-opengl {:mvn/version "3.2.3"}
-        org.lwjgl/lwjgl-opengl$natives-windows {:mvn/version "3.2.3"}
-        nrepl/nrepl {:mvn/version "0.8.3"}}
- :mvn/repos {"space-maven" {:url "https://packages.jetbrains.team/maven/p/skija/maven"}}}

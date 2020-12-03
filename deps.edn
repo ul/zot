@@ -1,9 +1,7 @@
-{:deps {org.jetbrains.skija/skija-macos {:mvn/version "0.6.18"}
-        org.lwjgl/lwjgl {:mvn/version "3.2.3"}
-        org.lwjgl/lwjgl$natives-macos {:mvn/version "3.2.3"}
-        org.lwjgl/lwjgl-glfw {:mvn/version "3.2.3"}
-        org.lwjgl/lwjgl-glfw$natives-macos {:mvn/version "3.2.3"}
-        org.lwjgl/lwjgl-opengl {:mvn/version "3.2.3"}
-        org.lwjgl/lwjgl-opengl$natives-macos {:mvn/version "3.2.3"}
-        nrepl/nrepl {:mvn/version "0.8.3"}}
- :mvn/repos {"space-maven" {:url "https://packages.jetbrains.team/maven/p/skija/maven"}}}
+{:deps {thi.ng/geom {:mvn/version "1.0.0-RC4"}
+        org.jogamp.gluegen/gluegen-rt {:local/root "vendor/gluegen-rt.jar"}
+        org.jogamp.gluegen/jogl-all {:local/root "vendor/jogl-all.jar"}
+        org.jogamp.gluegen/gluegen-rt$natives-macosx-universal {:local/root "vendor/gluegen-rt-natives-macosx-universal.jar"}
+        org.jogamp.jogl/jogl-all$natives-macosx-universal {:local/root "vendor/jogl-all-natives-macosx-universal.jar"}
+        org.jogamp.gluegen/gluegen-rt$natives-windows-amd64 {:local/root "vendor/gluegen-rt-natives-windows-amd64.jar"}
+        org.jogamp.jogl/jogl-all$natives-windows-amd64 {:local/root "vendor/jogl-all-natives-windows-amd64.jar"}}}
