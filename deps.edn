@@ -4,4 +4,6 @@
         org.jogamp.gluegen/gluegen-rt$natives-macosx-universal {:local/root "vendor/gluegen-rt-natives-macosx-universal.jar"}
         org.jogamp.jogl/jogl-all$natives-macosx-universal {:local/root "vendor/jogl-all-natives-macosx-universal.jar"}
         org.jogamp.gluegen/gluegen-rt$natives-windows-amd64 {:local/root "vendor/gluegen-rt-natives-windows-amd64.jar"}
-        org.jogamp.jogl/jogl-all$natives-windows-amd64 {:local/root "vendor/jogl-all-natives-windows-amd64.jar"}}}
+        org.jogamp.jogl/jogl-all$natives-windows-amd64 {:local/root "vendor/jogl-all-natives-windows-amd64.jar"}
+        nrepl/nrepl {:mvn/version "0.8.3"}}
+ }
