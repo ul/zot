@@ -1,6 +1,6 @@
 (ns zot.engine
   (:import
-   [com.jogamp.opengl GL3 GLAutoDrawable]
+   [com.jogamp.opengl GLAutoDrawable]
    [com.jogamp.newt.event MouseEvent KeyEvent])
   (:require
    [thi.ng.geom.gl.jogl.core :as jogl]))

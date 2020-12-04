@@ -4,21 +4,18 @@
    [com.jogamp.newt.event MouseEvent KeyEvent])
   (:require
    [zot.engine]
-   [thi.ng.math.core :as m]
+   [thi.ng.color.core :as col]
    [thi.ng.geom.core :as g]
    [thi.ng.geom.aabb :as a]
    [thi.ng.geom.attribs :as attr]
-   [thi.ng.geom.vector :as v]
    [thi.ng.geom.matrix :as mat]
    [thi.ng.geom.gl.core :as gl]
    [thi.ng.geom.gl.arcball :as arc]
-   [thi.ng.geom.gl.buffers :as buf]
    [thi.ng.geom.gl.shaders :as sh]
+   [thi.ng.geom.gl.shaders.lambert :as lambert]
    [thi.ng.geom.gl.glmesh :as glm]
    [thi.ng.geom.gl.jogl.core :as jogl]
-   [thi.ng.geom.gl.jogl.constants :as glc]
-   [clojure.pprint :refer [pprint]]
-   [clojure.java.io :as io]))
+   [thi.ng.geom.gl.jogl.constants :as glc]))
 
 (def app (atom nil))
 
@@ -50,32 +47,32 @@
 (defn init
   [^GLAutoDrawable drawable]
   (let [^GL3 gl (.. drawable getGL getGL3)
-        tex     (buf/load-texture gl {:src (io/file "assets/cubev.png")})
         model   (-> (a/aabb 1)
                     (g/center)
-                    (g/as-mesh {:mesh    (glm/gl-mesh 12 #{:uv})
-                                :attribs {:uv (attr/face-attribs (attr/uv-cube-map-v 256 false))}})
+                    (g/as-mesh
+                     {:mesh    (glm/indexed-gl-mesh 12 #{:col :fnorm})
+                      :attribs {:col (->> [[1 0 0] [0 1 0] [0 0 1] [0 1 1] [1 0 1] [1 1 0]]
+                                          (map col/rgba)
+                                          (attr/const-face-attribs))}})
                     (gl/as-gl-buffer-spec {})
-                    (assoc :shader (sh/make-shader-from-spec gl shader))
-                    (assoc-in [:shader :state :tex] tex)
+                    (assoc :shader (sh/make-shader-from-spec gl lambert/shader-spec-attrib 330))
                     (gl/make-buffers-in-spec gl glc/static-draw))]
     (swap! app assoc :model model :arcball (arc/arcball {}))))
 
 (defn display
-  [^GLAutoDrawable drawable t]
+  [^GLAutoDrawable drawable _t]
   (let [{:keys [model arcball]} @app
         ^GL3 gl (.. drawable getGL getGL3)]
     (doto gl
       (gl/clear-color-and-depth-buffer 0.3 0.3 0.3 1.0 1.0)
       (gl/draw-with-shader
        (update model :uniforms assoc
-               :view (arc/get-view arcball)
-               :time (* 0.25 t))))))
+               :view (arc/get-view arcball))))))
 
 (defn dispose [_] (jogl/stop-animator (:anim @app)))
 
 (defn resize
-  [x y w h]
+  [_x _y w h]
   (swap! app assoc-in [:model :uniforms :proj] (mat/perspective 45 (/ w h) 0.1 10))
   (swap! app update :arcball arc/resize w h))
 
@@ -89,18 +86,19 @@
 
 (defn mouse-dragged [^MouseEvent e] (swap! app update :arcball arc/drag (.getX e) (.getY e)))
 
-(defn wheel-moved [^MouseEvent e deltas] (swap! app update :arcball arc/zoom-delta (nth deltas 1)))
+(defn wheel-moved [^MouseEvent _e deltas] (swap! app update :arcball arc/zoom-delta (nth deltas 1)))
 
 (defn -main
-  [& args]
-  (zot.engine/start {:init init
-                     :display #'display
-                     :resize #'resize
-                     :dispose dispose
-                     :key-pressed #'key-pressed
-                     :mouse-pressed #'mouse-pressed
-                     :mouse-dragged #'mouse-dragged
-                     :wheel-moved #'wheel-moved})
+  [& _args]
+  (reset! app
+          (zot.engine/start {:init init
+                             :display #'display
+                             :resize #'resize
+                             :dispose dispose
+                             :key-pressed #'key-pressed
+                             :mouse-pressed #'mouse-pressed
+                             :mouse-dragged #'mouse-dragged
+                             :wheel-moved #'wheel-moved}))
   nil)
 
 (comment (-main))
