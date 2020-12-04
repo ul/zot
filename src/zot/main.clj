@@ -24,7 +24,7 @@
 (def shader
   {:vs "
   void main() {
-    vCol = vec4(position.xy * 0.5 + 0.5, fract(time), fract(sin(time*0.1)));
+    vCol = vec4(position.xy * 0.5 + 0.5, fract(time), alpha);
     gl_Position = proj * view * model * vec4(position, 1.0);
   }"
    :fs "out vec4 fragColor;
@@ -97,7 +97,7 @@
 
 (defn mouse-dragged [^MouseEvent e] (swap! app update :arcball arc/drag (.getX e) (.getY e)))
 
-(defn wheel-moved [^MouseEvent _e deltas] (swap! app update :arcball arc/zoom-delta (nth deltas 1)))
+(defn wheel-moved [^MouseEvent _e deltas] (swap! app update :arcball arc/zoom-delta (* 10 (nth deltas 1))))
 
 (defn -main
   [& _args]
