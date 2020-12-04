@@ -7,6 +7,7 @@
    [thi.ng.color.core :as col]
    [thi.ng.geom.core :as g]
    [thi.ng.geom.aabb :as a]
+   [thi.ng.geom.cuboid :as cuboid]
    [thi.ng.geom.attribs :as attr]
    [thi.ng.geom.matrix :as mat]
    [thi.ng.geom.gl.core :as gl]
@@ -47,7 +48,8 @@
 (defn init
   [^GLAutoDrawable drawable]
   (let [^GL3 gl (.. drawable getGL getGL3)
-        model   (-> (a/aabb 1)
+        shader (sh/make-shader-from-spec gl lambert/shader-spec-attrib 330)
+        model   (-> (cuboid/cuboid [0 0 0] [1 0 0] [1 1 0] [0 1 0] [0 0 2] [1 0 2] [1 1 2] [0 1 2])
                     (g/center)
                     (g/as-mesh
                      {:mesh    (glm/indexed-gl-mesh 12 #{:col :fnorm})
@@ -55,9 +57,9 @@
                                           (map col/rgba)
                                           (attr/const-face-attribs))}})
                     (gl/as-gl-buffer-spec {})
-                    (assoc :shader (sh/make-shader-from-spec gl lambert/shader-spec-attrib 330))
+                    (assoc :shader shader)
                     (gl/make-buffers-in-spec gl glc/static-draw))]
-    (swap! app assoc :model model :arcball (arc/arcball {}))))
+    (swap! app assoc :model model :arcball (arc/arcball {}) :shader shader)))
 
 (defn display
   [^GLAutoDrawable drawable _t]
@@ -76,11 +78,28 @@
   (swap! app assoc-in [:model :uniforms :proj] (mat/perspective 45 (/ w h) 0.1 10))
   (swap! app update :arcball arc/resize w h))
 
+(defn reconfigure [^GLAutoDrawable drawable]
+  (let [^GL3 gl (.. drawable getGL getGL3)
+        shader (:shader @app)
+        model (-> (a/aabb 1)
+                  (g/center)
+                  (g/as-mesh
+                   {:mesh    (glm/indexed-gl-mesh 12 #{:col :fnorm})
+                    :attribs {:col (->> [[1 0 0] [0 1 0] [0 0 1] [0 1 1] [1 0 1] [1 1 0]]
+                                        (map col/rgba)
+                                        (attr/const-face-attribs))}})
+                  (gl/as-gl-buffer-spec {})
+                  (assoc :shader shader)
+                  (gl/make-buffers-in-spec gl glc/static-draw))]
+    (swap! app assoc :model model)))
+
 (defn key-pressed
   [^KeyEvent e]
   (condp = (.getKeyCode e)
     KeyEvent/VK_ESCAPE (jogl/destroy-window (:window @app))
-    nil))
+    (case (.getKeyChar e)
+      \r (reconfigure (:window @app))
+      nil)))
 
 (defn mouse-pressed [^MouseEvent e] (swap! app update :arcball arc/down (.getX e) (.getY e)))
 
