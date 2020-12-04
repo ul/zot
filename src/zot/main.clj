@@ -57,8 +57,7 @@
                                           (map col/rgba)
                                           (attr/const-face-attribs))}})
                     (gl/as-gl-buffer-spec {})
-                    (assoc :shader shader)
-                    (gl/make-buffers-in-spec gl glc/static-draw))]
+                    (assoc :shader shader))]
     (swap! app assoc :model model :arcball (arc/arcball {}) :shader shader)))
 
 (defn display
@@ -68,7 +67,7 @@
     (doto gl
       (gl/clear-color-and-depth-buffer 0.3 0.3 0.3 1.0 1.0)
       (gl/draw-with-shader
-       (update model :uniforms assoc
+       (update (gl/make-buffers-in-spec model gl glc/static-draw) :uniforms assoc
                :view (arc/get-view arcball))))))
 
 (defn dispose [_] (jogl/stop-animator (:anim @app)))
@@ -78,9 +77,8 @@
   (swap! app assoc-in [:model :uniforms :proj] (mat/perspective 45 (/ w h) 0.1 10))
   (swap! app update :arcball arc/resize w h))
 
-(defn reconfigure [^GLAutoDrawable drawable]
-  (let [^GL3 gl (.. drawable getGL getGL3)
-        shader (:shader @app)
+(defn reconfigure []
+  (let [shader (:shader @app)
         model (-> (a/aabb 1)
                   (g/center)
                   (g/as-mesh
@@ -89,8 +87,7 @@
                                         (map col/rgba)
                                         (attr/const-face-attribs))}})
                   (gl/as-gl-buffer-spec {})
-                  (assoc :shader shader)
-                  (gl/make-buffers-in-spec gl glc/static-draw))]
+                  (assoc :shader shader))]
     (swap! app assoc :model model)))
 
 (defn key-pressed
@@ -98,7 +95,7 @@
   (condp = (.getKeyCode e)
     KeyEvent/VK_ESCAPE (jogl/destroy-window (:window @app))
     (case (.getKeyChar e)
-      \r (reconfigure (:window @app))
+      \r (reconfigure)
       nil)))
 
 (defn mouse-pressed [^MouseEvent e] (swap! app update :arcball arc/down (.getX e) (.getY e)))
