@@ -15,8 +15,6 @@
    [thi.ng.geom.gl.jogl.constants :as glc]
    nrepl.server))
 
-(def app (atom nil))
-
 (def shader
   {:vs "
   void main() {
@@ -60,28 +58,37 @@
         :flags sides})
       (gl/as-gl-buffer-spec {})))
 
-(defn init
-  [^GLAutoDrawable _drawable]
-  (swap! app assoc
-         :models (mapv make-model model-coords)
-         :arcball (arc/arcball {})
-         :re-build true
-         :cache {}))
+(def app (atom {;; Request rebuilding shaders and models on the next frame. Press 'r' to activate.
+                ;; Leaks memory at the moment but negligible if invoked manually
+                ;; (don't rebuild on each frame!).
+                :request-rebuild true
+                ;; Draw polygons with lines rather than fill them. Press 'w' to toggle.
+                :wireframe true
+                ;; All the data returned by the zot.engine/start.
+                :engine nil
+                ;; Cache for models and shaders.
+                ;; Apparently some of OpenGL calls fail if no issued within init/display callbacks
+                ;; even when we pass a window as a drawable.
+                :cache {}
+                :arcball (arc/arcball {})
+                :models (mapv make-model model-coords)}))
+
+(defn init [^GLAutoDrawable _drawable])
 
 (defn display
   [^GLAutoDrawable drawable t]
-  (let [{:keys [models arcball re-build cache wireframe]} @app
+  (let [{:keys [models arcball request-rebuild cache wireframe]} @app
         ^GL3 gl (.. drawable getGL getGL3)
         view (arc/get-view arcball)
         cache
-        (if re-build
+        (if request-rebuild
           (let [shader (sh/make-shader-from-spec gl shader)]
             {:models
              (mapv (fn [model]
                      (gl/make-buffers-in-spec (assoc model :shader shader) gl glc/static-draw))
                    models)})
           cache)]
-    (swap! app assoc :cache cache :re-build false)
+    (swap! app assoc :cache cache :request-rebuild false)
     (doto gl
       (gl/clear-color-and-depth-buffer 0.3 0.3 0.3 1.0 1.0)
       (.glPolygonMode glc/front-and-back (if wireframe glc/line glc/fill)))
@@ -90,23 +97,22 @@
        gl
        (update model :uniforms assoc :view view :time t)))))
 
-(defn dispose [_] (jogl/stop-animator (:anim @app)))
-
 (defn resize
   [_x _y w h]
-  (swap! app
-         update :models
-         (fn [models] (mapv (fn [model]
+  (let [update-proj (fn [models]
+                      (mapv (fn [model]
                               (assoc-in model [:uniforms :proj] (mat/perspective 90 (/ w h) 0.1 10)))
-                            models)))
+                            models))]
+    (swap! app update :models update-proj)
+    (swap! app update-in [:cache :models] update-proj))
   (swap! app update :arcball arc/resize w h))
 
 (defn key-pressed
   [^KeyEvent e]
   (condp = (.getKeyCode e)
-    KeyEvent/VK_ESCAPE (jogl/destroy-window (:window @app))
+    KeyEvent/VK_ESCAPE (jogl/destroy-window (get-in @app [:engine :window]))
     (case (.getKeyChar e)
-      \r (swap! app assoc :re-build true)
+      \r (swap! app assoc :request-rebuild true)
       \w (swap! app update :wireframe not)
       nil)))
 
@@ -116,18 +122,20 @@
 
 (defn wheel-moved [^MouseEvent _e deltas] (swap! app update :arcball arc/zoom-delta (* 10 (nth deltas 1))))
 
+(defn dispose [_] (jogl/stop-animator (get-in @app [:engine :anim])))
+
 (defn -main
   [& _args]
-  ;; (nrepl.server/start-server :port 7888)
-  (reset! app
-          (zot.engine/start {:init init
-                             :display #'display
-                             :resize #'resize
-                             :dispose dispose
-                             :key-pressed #'key-pressed
-                             :mouse-pressed #'mouse-pressed
-                             :mouse-dragged #'mouse-dragged
-                             :wheel-moved #'wheel-moved}))
+  (nrepl.server/start-server :port 7888)
+  (swap! app assoc :engine
+         (zot.engine/start {:init init
+                            :display #'display
+                            :resize #'resize
+                            :dispose dispose
+                            :key-pressed #'key-pressed
+                            :mouse-pressed #'mouse-pressed
+                            :mouse-dragged #'mouse-dragged
+                            :wheel-moved #'wheel-moved}))
   nil)
 
 (comment (-main))
