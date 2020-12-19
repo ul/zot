@@ -70,7 +70,7 @@
 
 (defn display
   [^GLAutoDrawable drawable t]
-  (let [{:keys [models arcball re-build cache]} @app
+  (let [{:keys [models arcball re-build cache wireframe]} @app
         ^GL3 gl (.. drawable getGL getGL3)
         view (arc/get-view arcball)
         cache
@@ -84,7 +84,7 @@
     (swap! app assoc :cache cache :re-build false)
     (doto gl
       (gl/clear-color-and-depth-buffer 0.3 0.3 0.3 1.0 1.0)
-      (.glPolygonMode glc/front-and-back (if false glc/fill glc/line)))
+      (.glPolygonMode glc/front-and-back (if wireframe glc/line glc/fill)))
     (doseq [model (:models cache)]
       (gl/draw-with-shader
        gl
@@ -107,6 +107,7 @@
     KeyEvent/VK_ESCAPE (jogl/destroy-window (:window @app))
     (case (.getKeyChar e)
       \r (swap! app assoc :re-build true)
+      \w (swap! app update :wireframe not)
       nil)))
 
 (defn mouse-pressed [^MouseEvent e] (swap! app update :arcball arc/down (.getX e) (.getY e)))
@@ -117,7 +118,7 @@
 
 (defn -main
   [& _args]
-  (nrepl.server/start-server :port 7888)
+  ;; (nrepl.server/start-server :port 7888)
   (reset! app
           (zot.engine/start {:init init
                              :display #'display
