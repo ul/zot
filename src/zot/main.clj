@@ -49,8 +49,7 @@
    {:coords [[-2 -0.2 0] [-4 -0.2 2] [-0.4 -0.2 2] [-0.4 -0.2 0] [-2 0.2 0] [-4 0.2 2] [-0.4 0.2 2] [-0.4 0.2 0]] :trans [-1.7 -0.2 2.5] :sides "nsewfb"}
    {:coords (x-axis-switch-cuboid [[-2 -0.2 0] [-4 -0.2 2] [-0.4 -0.2 2] [-0.4 -0.2 0] [-2 0.2 0] [-4 0.2 2] [-0.4 0.2 2] [-0.4 0.2 0]]) :trans [1.7 -0.2 2.5] :sides "nsewfb"}
    {:coords [[0.1 -0.1 0] [-0.1 -0.1 0] [-0.1 0.1 0] [0.1 0.1 0] [0.1 -0.1 3] [-0.1 -0.1 3] [-0.1 0.1 3] [0.1 0.1 3]] :trans [-1.7 -0.2 -1] :sides "nsewfb"}
-   {:coords [[0.1 -0.1 0] [-0.1 -0.1 0] [-0.1 0.1 0] [0.1 0.1 0] [0.1 -0.1 3] [-0.1 -0.1 3] [-0.1 0.1 3] [0.1 0.1 3]] :trans [1.7 -0.2 -1] :sides "nsewfb"}
-   ])
+   {:coords [[0.1 -0.1 0] [-0.1 -0.1 0] [-0.1 0.1 0] [0.1 0.1 0] [0.1 -0.1 3] [-0.1 -0.1 3] [-0.1 0.1 3] [0.1 0.1 3]] :trans [1.7 -0.2 -1] :sides "nsewfb"}])
 
 (defn make-model [{:keys [coords trans sides]}]
   (-> (apply cuboid/cuboid coords)
@@ -60,7 +59,6 @@
        {:mesh    (glm/indexed-gl-mesh 12 #{})
         :flags sides})
       (gl/as-gl-buffer-spec {})))
-
 
 (defn init
   [^GLAutoDrawable _drawable]
@@ -86,7 +84,7 @@
     (swap! app assoc :cache cache :re-build false)
     (doto gl
       (gl/clear-color-and-depth-buffer 0.3 0.3 0.3 1.0 1.0)
-      (.glPolygonMode glc/front-and-back (if false glc/fill glc/line )))
+      (.glPolygonMode glc/front-and-back (if false glc/fill glc/line)))
     (doseq [model (:models cache)]
       (gl/draw-with-shader
        gl

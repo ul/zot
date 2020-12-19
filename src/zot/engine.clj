@@ -43,7 +43,7 @@
        :double-buffer true
        :fullscreen    false
        :events        {:init    init
-                       :display display
+                       :display display+
                        :resize  resize+
                        :dispose dispose
                        :keys    {:press key-pressed+}
