@@ -5,6 +5,7 @@
    [thi.ng.geom.matrix :as mat]
    [thi.ng.geom.gl.core :as gl]
    [thi.ng.geom.gl.glmesh :as glm]
+   [thi.ng.geom.gl.shaders :as sh]
    [thi.ng.geom.gl.jogl.constants :as glc]))
 
 (def shader
@@ -54,3 +55,10 @@
   "Build a ship as a vector of primitive models."
   []
   (mapv make-model model-coords))
+
+(defn build-models
+  ""
+  [gl ship]
+  (let [shader (sh/make-shader-from-spec gl shader)]
+    (mapv #(gl/make-buffers-in-spec (assoc % :shader shader) gl glc/static-draw)
+          ship)))

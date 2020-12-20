@@ -6,10 +6,10 @@
    zot.engine
    [zot.ship :as ship]
    [thi.ng.color.core :as color]
+   [thi.ng.geom.core :as g]
    [thi.ng.geom.matrix :as mat]
    [thi.ng.geom.gl.core :as gl]
    [thi.ng.geom.gl.arcball :as arc]
-   [thi.ng.geom.gl.shaders :as sh]
    [thi.ng.geom.gl.jogl.core :as jogl]
    [thi.ng.geom.gl.jogl.constants :as glc]
    nrepl.server))
@@ -24,46 +24,49 @@
                 ;; even when we pass a window as a drawable.
                 ;; Leaks memory at the moment but negligible if invoked manually
                 ;; (don't rebuild on each frame!).
+                ;; This feature is exclusively for a hot code reload,
+                ;; don't abuse it for a dynamism in the game.
                 :cache nil
                 :arcball (arc/arcball {})
-                :ships [(ship/make-ship)]
+                :blueprints {:ship (ship/make-ship)}
+                :ships [{:position [0.0 0.0 0.0]}]
                 :background-color (color/rgba 0.3 0.3 0.3)}))
 
-(defn make-cache [gl ships]
-  (let [shader (sh/make-shader-from-spec gl ship/shader)
-        build-model (fn [model]
-                      (gl/make-buffers-in-spec (assoc model :shader shader) gl glc/static-draw))]
-    {:models (mapcat (fn [ship] (mapv build-model ship)) ships)}))
-
 (defn init [^GLAutoDrawable _drawable])
+
+(defn make-cache [gl {:keys [ship]}]
+  {:ship (ship/build-models gl ship)})
 
 (defn display
   [^GLAutoDrawable drawable t]
   (let [^GL3 gl (.. drawable getGL getGL3)
         {:keys [arcball
                 background-color
+                blueprints
                 cache
+                ship-proj
                 ships
                 wireframe]} @app
         view (arc/get-view arcball)
-        cache (or cache (make-cache gl ships))]
+        cache (or cache (make-cache gl blueprints))]
     (swap! app assoc :cache cache)
     (doto gl
       (gl/clear-color-and-depth-buffer background-color 1.0)
       (.glPolygonMode glc/front-and-back (if wireframe glc/line glc/fill)))
-    (doseq [model (:models cache)]
-      (gl/draw-with-shader
-       gl
-       (update model :uniforms assoc :view view :time t)))))
+    (doseq [ship ships]
+      (doseq [model (get cache :ship)]
+        (gl/draw-with-shader
+         gl
+         (-> model
+             (update :uniforms assoc
+                     :time t
+                     :model (g/translate mat/M44 (get ship :position))
+                     :view view
+                     :proj ship-proj)))))))
 
 (defn resize
   [_x _y w h]
-  (let [update-model #(assoc-in % [:uniforms :proj] (mat/perspective 90 (/ w h) 0.1 10))
-        update-models #(mapv update-model %)
-        update-ships #(mapv update-models %)]
-    (swap! app update :ships update-ships)
-    (when (get @app :cache)
-      (swap! app update-in [:cache :models] update-models)))
+  (swap! app assoc :ship-proj (mat/perspective 90 (/ w h) 0.1 10))
   (swap! app update :arcball arc/resize w h))
 
 (defn key-pressed
@@ -97,4 +100,6 @@
                             :wheel-moved #'wheel-moved}))
   nil)
 
-(comment (-main))
+(comment
+  (-main)
+  (do (swap! app assoc-in [:ships 0 :position] [0.0 0.0 0.0]) nil))
